@@ -1,0 +1,10 @@
+{
+  "name": "Left 4k Dead",
+  "description": "A port of Notch's Left 4k Dead <www.mojang.com/notch/j4k/l4kd/>.",
+  "version": "0.1",
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  }
+}

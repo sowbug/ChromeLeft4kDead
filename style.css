@@ -1,0 +1,14 @@
+body {
+  background: black;
+}
+
+canvas {
+  height: 480px;
+  width: 480px;
+}
+
+#fps {
+  color: yellow;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+}
