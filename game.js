@@ -18,6 +18,7 @@ var SPRITE_X_SIZE = 12;
 var SPRITE_Y_SIZE = 12;
 var PIXEL_OUTER_WALL = RGB(0xff, 0xfe, 0xfe);
 var PIXEL_NORMAL_WALL = RGB(0xff, 0x80, 0x52);
+var PIXEL_INNER_WALL = RGB(0xff, 0xff, 0xff);
 var PIXEL_MASK_SPECIAL = RGB(0xff, 0, 0);
 //var PIXEL_INFECTED = the random green
 var ROOM_COUNT = 70;
@@ -112,7 +113,7 @@ Game.prototype.generateMap = function() {
   for (var y = 0; y < MAP_HEIGHT; ++y) {
     for (var x = 0; x < MAP_WIDTH; ++x) {
       var br = nextRandomInt(32) + 112;
-      map[i] = (br / 3) | (br) << 8;
+      map[i] = RGB(br / 3, br, 0);
       if (x < 4 || y < 4 || x >= 1020 || y >= 1020) {
         map[i] = PIXEL_OUTER_WALL;
       }
@@ -140,8 +141,8 @@ Game.prototype.generateMap = function() {
     // Place the player (monsterData[0-15]) in the center of the
     // second-to-last room.
     if (i == ROOM_COUNT - 2) {
-      this.characters[0].x = xm + w / 2;
-      this.characters[0].y = ym + h / 2;
+      this.characters[0].x = xm + Math.floor(w / 2);
+      this.characters[0].y = ym + Math.floor(h / 2);
 //      monsterData[MDO_UNKNOWN_15] = 0x808080;
 //      monsterData[MDO_UNKNOWN_11] = 1;
 }
@@ -178,16 +179,16 @@ Game.prototype.generateMap = function() {
           }
 
           // Grayish concrete floor
-          map[x + y * 1024] = RGB(br * 3 / 3, br * 4 / 4, br * 4 / 4);
+          map[x + y * MAP_WIDTH] = RGB(br * 3 / 3, br * 4 / 4, br * 4 / 4);
         } else {
           // No, we're not. Draw the wall.
           // Orange wall border
-          map[x + y * 1024] = PIXEL_NORMAL_WALL;
+          map[x + y * MAP_WIDTH] = PIXEL_NORMAL_WALL;
         }
 
         if (i == ROOM_COUNT - 1) {
           // Give this room a red tint.
-          map[x + y * 1024] &= PIXEL_MASK_SPECIAL;
+          map[x + y * MAP_WIDTH] &= PIXEL_MASK_SPECIAL;
         }
       }
     }
@@ -212,24 +213,32 @@ Game.prototype.generateMap = function() {
         for (var x = xGap; x < xGap + ww; x++) {
           // A slightly darker color represents the exit.
           var br = nextRandomInt(32) + 112 - 64;
-          map[x + y * 1024] = RGB(br * 3 / 3, br * 4 / 4, br * 4 / 4);
+          map[x + y * MAP_WIDTH] = RGB(br * 3 / 3, br * 4 / 4, br * 4 / 4);
         }
       }
     }
   }
 
-  // No idea. It ends up setting parts of the red room white, I think.
-  // for (var y = 1; y < 1024 - 1; y++) {
-  //   inloop: for (var x = 1; x < 1024 - 1; x++) {
-  //     for (var xx = x - 1; xx <= x + 1; xx++)
-  //       for (var yy = y - 1; yy <= y + 1; yy++)
-  //         if (maps[xx + yy * 1024] < PIXEL_MASK_SPECIAL)
-  //           continue inloop;
-
-  //         maps[x + y * 1024] = 0xffffff;
-  //       }
-  //     }
+  // Paint the inside of each wall white. This is for wall-collision
+  // detection.
+  for (var y = 1; y < MAP_WIDTH - 1; ++y) {
+    inloop: for (var x = 1; x < MAP_WIDTH - 1; ++x) {
+      for (var xx = x - 1; xx <= x + 1; ++xx) {
+        for (var yy = y - 1; yy <= y + 1; ++yy) {
+          if (this.isWallPixel(map[xx + yy * MAP_WIDTH])) {
+            continue inloop;
+          }
+        }
+      }
+      map[x + y * MAP_WIDTH] = PIXEL_INNER_WALL;
+    }
+  }
   return map;
+};
+
+Game.prototype.isWallPixel = function(pixel) {
+  // Walls have full red.
+  return (pixel & 0xff) != 0xff;
 };
 
 Game.prototype.generateEnemies = function() {
@@ -315,6 +324,25 @@ Game.prototype.movePlayer = function() {
   if (Key.isDown(Key.RIGHT)) {
     ++this.characters[0].x;
   }
+
+  this.shootDir = this.playerDir + (nextRandomInt(100) -
+    nextRandomInt(100)) / 20;
+  var cos = Math.cos(-this.shootDir);
+  var sin = Math.sin(-this.shootDir);
+
+  var closestHitDist = this.calculateClosestHitDistance(cos, sin);
+};
+
+Game.prototype.calculateClosestHitDistance = function(cos, sin) {
+  var closestHitDist = 0;
+  for (var j = 0; j < 250; j++) {  // TODO(miket): why not 240?
+    var xm = this.characters[0].x + Math.floor(cos * j / 2);
+    var ym = this.characters[0].y - Math.floor(sin * j / 2);
+    if (this.map[(xm + ym * 1024) & (1024 * 1024 - 1)] == PIXEL_NORMAL_WALL)
+      break;
+    closestHitDist = j / 2;
+  }
+  return closestHitDist;
 };
 
 Game.prototype.generateOneLightmapBeam = function(xt, yt) {
@@ -359,7 +387,7 @@ Game.prototype.generateOneLightmapBeam = function(xt, yt) {
     if (this.map[(xm + ym * MAP_WIDTH) & (MAP_WIDTH * MAP_WIDTH - 1)] ==
       PIXEL_OUTER_WALL) {
       break;
-    }
+  }
 
     // Do an approximate distance calculation. I'm not sure why this
     // couldn't have been built into the brightness table, which would let
@@ -467,7 +495,6 @@ Game.prototype.generateBrightness = function() {
 
 Game.prototype.start = function() {
   var game = this;
-  this.z = 0;
   this.playerDir = 0;
 
   // http://nokarma.org/2011/02/27/javascript-game-development-keyboard-input/
