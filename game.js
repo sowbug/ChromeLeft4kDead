@@ -18,14 +18,20 @@ var SPRITE_X_SIZE = 12;
 var SPRITE_Y_SIZE = 12;
 var PIXEL_OUTER_WALL = RGB(0xff, 0xfe, 0xfe);
 var PIXEL_NORMAL_WALL = RGB(0xff, 0x80, 0x52);
-var PIXEL_INNER_WALL = RGB(0xff, 0xff, 0xff);
+
+// It turns out we can't do the RGB thing in JS if we're using alpha, because
+// JS wants to convert very large 32-bit numbers into signed versions if we
+// build them with ORs and shifts. I'm not sure why the literal 0xFFFFFFFF
+// doesn't go through this conversion, but it does work. So unfortunately
+// we lose a little bit of code clarity here in exchange for it working.
+var PIXEL_INNER_WALL = 0xFFFFFFFF;
 var PIXEL_MASK_SPECIAL = RGB(0xff, 0, 0);
 //var PIXEL_INFECTED = the random green
 var ROOM_COUNT = 70;
 var CHARACTER_COUNT = 320;
 
 function RGB(r, g, b) {
-  return 0xFF000000 | r | (g << 8) | (b << 16);
+  return r | (g << 8) | (b << 16) | (0xFF << 24);
 }
 
 var Key = {
@@ -225,7 +231,7 @@ Game.prototype.generateMap = function() {
     inloop: for (var x = 1; x < MAP_WIDTH - 1; ++x) {
       for (var xx = x - 1; xx <= x + 1; ++xx) {
         for (var yy = y - 1; yy <= y + 1; ++yy) {
-          if (this.isWallPixel(map[xx + yy * MAP_WIDTH])) {
+          if (!this.isWallPixel(map[xx + yy * MAP_WIDTH])) {
             continue inloop;
           }
         }
@@ -237,8 +243,8 @@ Game.prototype.generateMap = function() {
 };
 
 Game.prototype.isWallPixel = function(pixel) {
-  // Walls have full red.
-  return (pixel & 0xff) != 0xff;
+  // Walls have a full red component in RGB space.
+  return (pixel & 0xff) == 0xff;
 };
 
 Game.prototype.generateEnemies = function() {
@@ -311,7 +317,7 @@ Game.prototype.startLevel = function() {
   return true;
 };
 
-Game.prototype.movePlayer = function() {
+Game.prototype.doPlayerMovement = function() {
   if (Key.isDown(Key.UP)) {
     --this.characters[0].y;
   }
@@ -324,27 +330,9 @@ Game.prototype.movePlayer = function() {
   if (Key.isDown(Key.RIGHT)) {
     ++this.characters[0].x;
   }
-
-  this.shootDir = this.playerDir + (nextRandomInt(100) -
-    nextRandomInt(100)) / 20;
-  var cos = Math.cos(-this.shootDir);
-  var sin = Math.sin(-this.shootDir);
-
-  var closestHitDist = this.calculateClosestHitDistance(cos, sin);
 };
 
-Game.prototype.calculateClosestHitDistance = function(cos, sin) {
-  var closestHitDist = 0;
-  for (var j = 0; j < 250; j++) {  // TODO(miket): why not 240?
-    var xm = this.characters[0].x + Math.floor(cos * j / 2);
-    var ym = this.characters[0].y - Math.floor(sin * j / 2);
-    if (this.map[(xm + ym * 1024) & (1024 * 1024 - 1)] == PIXEL_NORMAL_WALL)
-      break;
-    closestHitDist = j / 2;
-  }
-  return closestHitDist;
-};
-
+var ccc = 0;
 Game.prototype.generateOneLightmapBeam = function(xt, yt) {
 
   // Figure out how far the current beam is from the player's view.
@@ -384,10 +372,10 @@ Game.prototype.generateOneLightmapBeam = function(xt, yt) {
     var xm = Math.floor(xx + this.characters[0].x - this.canvasCenterX);
     var ym = Math.floor(yy + this.characters[0].y - this.canvasCenterY);
 
-    if (this.map[(xm + ym * MAP_WIDTH) & (MAP_WIDTH * MAP_WIDTH - 1)] ==
-      PIXEL_OUTER_WALL) {
-      break;
-  }
+    var pixel = this.map[(xm + ym * MAP_WIDTH) & (MAP_WIDTH * MAP_WIDTH - 1)];
+    if (pixel == PIXEL_INNER_WALL) {
+      return;
+    }
 
     // Do an approximate distance calculation. I'm not sure why this
     // couldn't have been built into the brightness table, which would let
@@ -438,7 +426,27 @@ Game.prototype.drawMap = function(camX, camY) {
   }
 };
 
-Game.prototype.moveMonsters = function() {
+Game.prototype.calculateClosestHitDistance = function(cos, sin) {
+  var closestHitDist = 0;
+  for (var j = 0; j < 250; j++) {  // TODO(miket): why not 240?
+    var xm = this.characters[0].x + Math.floor(cos * j / 2);
+    var ym = this.characters[0].y - Math.floor(sin * j / 2);
+    if (this.map[(xm + ym * MAP_WIDTH) & (MAP_HEIGHT * MAP_WIDTH - 1)] ==
+      PIXEL_NORMAL_WALL) {
+      break;
+  }
+  closestHitDist = j / 2;
+}
+return closestHitDist;
+};
+
+Game.prototype.moveCharacters = function() {
+  this.shootDir = this.playerDir + (nextRandomInt(100) -
+    nextRandomInt(100)) / 20;
+  var cos = Math.cos(-this.shootDir);
+  var sin = Math.sin(-this.shootDir);
+
+  var closestHitDist = this.calculateClosestHitDistance(cos, sin);
 
 };
 
@@ -450,10 +458,10 @@ Game.prototype.loop = function() {
     if (!this.levelStarted) {
       this.levelStarted = this.startLevel();
     }
-    this.movePlayer();
+    this.doPlayerMovement();
     this.generateLightmap();
     this.drawMap(this.characters[0].x, this.characters[0].y);
-    this.moveMonsters();
+    this.moveCharacters();
   }
   this.applyLightmapAndNoise();
   this.drawBuffer();
