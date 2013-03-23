@@ -18,20 +18,16 @@ var SPRITE_X_SIZE = 12;
 var SPRITE_Y_SIZE = 12;
 var PIXEL_OUTER_WALL = RGB(0xff, 0xfe, 0xfe);
 var PIXEL_NORMAL_WALL = RGB(0xff, 0x80, 0x52);
-
-// It turns out we can't do the RGB thing in JS if we're using alpha, because
-// JS wants to convert very large 32-bit numbers into signed versions if we
-// build them with ORs and shifts. I'm not sure why the literal 0xFFFFFFFF
-// doesn't go through this conversion, but it does work. So unfortunately
-// we lose a little bit of code clarity here in exchange for it working.
-var PIXEL_INNER_WALL = 0xFFFFFFFF;
+var PIXEL_INNER_WALL = RGB(0xff, 0xff, 0xff);
 var PIXEL_MASK_SPECIAL = RGB(0xff, 0, 0);
 //var PIXEL_INFECTED = the random green
 var ROOM_COUNT = 70;
 var CHARACTER_COUNT = 320;
 
 function RGB(r, g, b) {
-  return r | (g << 8) | (b << 16) | (0xFF << 24);
+  // Many thanks to Erik Arvidsson for explaining the >>> 0 trick to
+  // convert back to a Uint32.
+  return (r | (g << 8) | (b << 16) | (0xFF << 24)) >>> 0;
 }
 
 var Key = {
