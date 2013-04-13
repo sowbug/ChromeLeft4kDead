@@ -145,16 +145,17 @@ Game.prototype.generateMap = function() {
     if (i == ROOM_COUNT - 2) {
       this.characters[0].x = xm + Math.floor(w / 2);
       this.characters[0].y = ym + Math.floor(h / 2);
-//      monsterData[MDO_UNKNOWN_15] = 0x808080;
-//      monsterData[MDO_UNKNOWN_11] = 1;
-}
+      // monsterData[MDO_UNKNOWN_15] = 0x808080;
+      // monsterData[MDO_UNKNOWN_11] = 1;
+    }
 
-    // Create a window around the current room coordinates. Why is the first
-    // one a width and the second a position?
-    xWin0 = xm + 5;
-    yWin0 = ym + 5;
-    xWin1 = xm + w - 5;
-    yWin1 = ym + h - 5;
+    if (i == ROOM_COUNT - 1) {
+      // Mark the end room.
+      xWin0 = xm + 5;
+      yWin0 = ym + 5;
+      xWin1 = xm + w - 5;
+      yWin1 = ym + h - 5;
+    }
 
     for (var y = ym; y < ym + h; y++) {
       for (var x = xm; x < xm + w; x++) {
@@ -189,7 +190,7 @@ Game.prototype.generateMap = function() {
         }
 
         if (i == ROOM_COUNT - 1) {
-          // Give this room a red tint.
+          // Give the end room a red tint.
           map[x + y * MAP_WIDTH] &= PIXEL_MASK_SPECIAL;
         }
       }
