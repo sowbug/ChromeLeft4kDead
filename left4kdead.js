@@ -154,10 +154,10 @@ function Left4kDead() {
               }
             }
             sprites[pix++] = col;
-            if (col > 1) {
-              col = 1;
+            if (R(col) > 1 || G(col) > 1 || B(col) > 1) {
+              col = RGB(0, 0, 1);
             } else {
-              col = 0;
+              col = RGB(0, 0, 0);
             }
           }
         }
@@ -492,7 +492,8 @@ function Left4kDead() {
           for (/*int*/ var y = ym - 6; y < ym + 6; y++)
             for (/*int*/ var x = xm - 6; x < xm + 6; x++) {
               /*int*/ var c = sprites[p++];
-              if (c > 0 && x >= 0 && y >= 0 && x < 240 && y < 240) {
+              var c_rgb = c & 0xffffff;
+              if (c_rgb > 0 && x >= 0 && y >= 0 && x < 240 && y < 240) {
                 pixels[x + y * 240] = c;
               }
             }
