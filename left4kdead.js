@@ -215,7 +215,7 @@ function Left4kDead() {
       level++;
       var buf = new ArrayBuffer(1024 * 1024 * 4);
       map = new Uint32Array(buf);
-      Math.seedrandom(4329 + level);
+      Math.seedrandom(14329 + level);
 
       var buf = new ArrayBuffer(320 * 16 * 4);
       monsterData = new Uint32Array(buf);
