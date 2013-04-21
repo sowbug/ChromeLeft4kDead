@@ -195,8 +195,8 @@ function Left4kDead() {
           ym *= 16;
 
           if (i == 68) {
-            monsterData[0] = xm + w / 2;
-            monsterData[1] = ym + h / 2;
+            monsterData[0] = Math.floor(xm + w / 2);
+            monsterData[1] = Math.floor(ym + h / 2);
             monsterData[15] = RGB(0x80, 0x80, 0x80);
             monsterData[11] = 1;
           }
@@ -325,22 +325,22 @@ function Left4kDead() {
 
             /*int*/ var j = 0;
             for (; j < dist; j++) {
-              /*int*/ var xx = xt * j / 120 + 120;
-              /*int*/ var yy = yt * j / 120 + 120;
+              /*int*/ var xx = Math.floor(xt * j / 120) + 120;
+              /*int*/ var yy = Math.floor(yt * j / 120) + 120;
               /*int*/ var xm = xx + xCam - 120;
               /*int*/ var ym = yy + yCam - 120;
 
               if (map[(xm + ym * 1024) & (1024 * 1024 - 1)] == RGB(0xff, 0xff, 0xff))
                 break;
 
-              /*int*/ var xd = (xx - 120) * 256 / 120;
-              /*int*/ var yd = (yy - 120) * 256 / 120;
+              /*int*/ var xd = Math.floor((xx - 120) * 256 / 120);
+              /*int*/ var yd = Math.floor((yy - 120) * 256 / 120);
 
-              /*int*/ var ddd = (xd * xd + yd * yd) / 256;
-              /*int*/ var br = brightness[ddd] * brr / 255;
+              /*int*/ var ddd = Math.floor((xd * xd + yd * yd) / 256);
+              /*int*/ var br = Math.floor(brightness[ddd] * brr / 255);
 
               if (ddd < 16) {
-                /*int*/ var tmp = 128 * (16 - ddd) / 16;
+                /*int*/ var tmp = Math.floor(128 * (16 - ddd) / 16);
                 br = br + tmp * (255 - br) / 255;
               }
 
@@ -470,8 +470,7 @@ function Left4kDead() {
                 for (/*int*/ var i = 0; i < amount; i++) {
                   /*double*/ var pow = (randomNextInt(100) * randomNextInt(100))
                       * poww / 10000 + 4;
-                  /*double*/ var dir = (randomNextInt(100) - randomNextInt(100))
-                      / 100.0 * rot;
+                  /*double*/ var dir = (randomNextInt(100) - randomNextInt(100)) / 100.0 * rot;
                   /*double*/ var xdd = (Math.cos(playerDir + dir) * pow)
                       + randomNextInt(4) - randomNextInt(4);
                   /*double*/ var ydd = (Math.sin(playerDir + dir) * pow)
@@ -673,7 +672,7 @@ function Left4kDead() {
 
         for (/*int*/ var y = 0; y < 240; y++) {
           for (/*int*/ var x = 0; x < 240; x++) {
-            /*int*/ var noise = randomNextInt(16) * randomNextInt(16) / 16;
+            /*int*/ var noise = Math.floor(randomNextInt(16) * randomNextInt(16) / 16);
             if (!gameStarted)
               noise *= 4;
 
@@ -724,6 +723,7 @@ function Left4kDead() {
 
         imageData.data.set(buf8);
         context.putImageData(imageData, 0, 0);
+        this.updateFPS();
         // do {
         //   Thread.yield();
         // } while (System.nanoTime() - lastTime < 0);
