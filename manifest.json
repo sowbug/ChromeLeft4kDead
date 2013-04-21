@@ -1,6 +1,6 @@
 {
   "name": "Left 4k Dead",
-  "description": "A port of Notch's Left 4k Dead <www.mojang.com/notch/j4k/l4kd/>.",
+  "description": "A port of Notch's Left 4k Dead <http://www.mojang.com/notch/j4k/l4kd/>. Visit <https://github.com/sowbug/ChromeLeft4kDead> for source.",
   "version": "0.0.0.1",
   "app": {
     "background": {
