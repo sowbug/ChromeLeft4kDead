@@ -15,6 +15,7 @@ var Key = {
   UP: 38,
   RIGHT: 39,
   DOWN: 40,
+  RELOAD: 82,
 
   isDown: function(keyCode) {
     return this._pressed[keyCode];
@@ -73,6 +74,9 @@ function Left4kDead() {
   var context = canvas.getContext('2d');
   var imageData = context.getImageData(0, 0, 240, 240);
 
+  context.font = "12px Verdana";
+  context.fillStyle = "yellow";
+
   // http://nokarma.org/2011/02/27/javascript-game-development-keyboard-input/
   window.addEventListener('keyup', function(event) {
     Key.onKeyup(event); }, false);
@@ -96,10 +100,9 @@ function Left4kDead() {
   var lightmapBuf = new ArrayBuffer(240 * 240);
   var lightmap = new Uint8ClampedArray(lightmapBuf);
 
-  /*    Random random = new Random();*/
+  Math.seedrandom();
   buf = new ArrayBuffer(18 * 4 * 16 * 12 * 12);
   var sprites = new Uint32Array(buf);
-
   var pix = 0;
   for (/*int*/ var i = 0; i < 18; i++) {
     /*int*/ var skin = RGB(0xFF, 0x99, 0x93);
@@ -189,7 +192,7 @@ function Left4kDead() {
 
   var needsRestart = true;
   var left4kDead = this;
-  setInterval(function() {
+  function loop() {
 
     if (needsRestart) {
       console.log("restart");
@@ -343,8 +346,8 @@ function Left4kDead() {
       /*int*/ var yCam = monsterData[1];
 
       for (/*int*/ var i = 0; i < 960; i++) {
-        /*int*/ var xt = Math.floor(i % 240) - 120;
-        /*int*/ var yt = (i / 240 % 2) * 239 - 120;
+        /*int*/ var xt = i % 240 - 120;
+        /*int*/ var yt = (Math.floor(i / 240) % 2) * 239 - 120;
 
         if (i >= 480) {
           /*int*/ var tmp = xt;
@@ -756,6 +759,10 @@ function Left4kDead() {
       }
     }
 
+    imageData.data.set(buf8);
+    context.putImageData(imageData, 0, 0);
+    left4kDead.updateFPS();
+
     context.fillText("" + score, 4, 232);
     if (!gameStarted) {
       context.fillText("Left 4k Dead", 80, 70);
@@ -767,11 +774,12 @@ function Left4kDead() {
     } else if (tick < 60) {
       context.fillText("Level " + level, 90, 70);
     }
+  }
 
-    imageData.data.set(buf8);
-    context.putImageData(imageData, 0, 0);
-    left4kDead.updateFPS();
-  }, 10);
+  (function animationLoop() {
+    window.requestAnimationFrame(animationLoop);
+    loop();
+  })();
 }
 
 Left4kDead.prototype.startFPS = function() {
