@@ -101,7 +101,7 @@ function Left4kDead() {
   var lightmap = new Uint8ClampedArray(lightmapBuf);
 
   Math.seedrandom();
-  buf = new ArrayBuffer(18 * 4 * 16 * 12 * 12);
+  buf = new ArrayBuffer(18 * 4 * 16 * 12 * 12 * 4);
   var sprites = new Uint32Array(buf);
   var pix = 0;
   for (/*int*/ var i = 0; i < 18; i++) {
