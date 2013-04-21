@@ -66,6 +66,7 @@ function Game() {
   this.context = this.canvas.getContext('2d');
   this.imageData = this.context.getImageData(0, 0, this.canvasWidth,
     this.canvasHeight);
+  console.log(this.canvasWidth);
 
   var buf = new ArrayBuffer(this.imageData.data.length);
   this.buf8 = new Uint8ClampedArray(buf);
@@ -273,21 +274,21 @@ Game.prototype.applyLightmapAndNoise = function() {
       this.data32[offset] = RGB(r, g, b);
       ++offset;
     }
-    // if (y % 2 == 0 && (y >= damage && y < 220)) {
-    //   for (var x = 232; x < 238; x++) {
-    //     pixels[y * 240 + x] = 0x800000;
-    //   }
-    // }
-    // if (y % 2 == 0 && (y >= ammo && y < 220)) {
-    //   for (var x = 224; x < 230; x++) {
-    //     pixels[y * 240 + x] = 0x808000;
-    //   }
-    // }
-    // if (y % 10 < 9 && (y >= clips && y < 220)) {
-    //   for (var x = 221; x < 222; x++) {
-    //     pixels[y * 240 + 221] = 0xffff00;
-    //   }
-    // }
+    if (y % 2 == 0 && (y >= this.damage && y < 220)) {
+      for (var x = 232; x < 238; x++) {
+        pixels[y * 240 + x] = 0x800000;
+      }
+    }
+    if (y % 2 == 0 && (y >= this.ammo && y < 220)) {
+      for (var x = 224; x < 230; x++) {
+        pixels[y * 240 + x] = 0x808000;
+      }
+    }
+    if (y % 10 < 9 && (y >= this.clips && y < 220)) {
+      for (var x = 221; x < 222; x++) {
+        pixels[y * 240 + 221] = 0xffff00;
+      }
+    }
   }
 
 };
@@ -329,9 +330,7 @@ Game.prototype.doPlayerMovement = function() {
   }
 };
 
-var ccc = 0;
 Game.prototype.generateOneLightmapBeam = function(xt, yt) {
-
   // Figure out how far the current beam is from the player's view.
   // In radians, not degrees, but same idea -- if the player is looking
   // 180 degrees south, and this beam is pointing 270 degrees west,
