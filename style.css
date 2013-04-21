@@ -10,7 +10,9 @@ canvas {
 }
 
 #fps {
-  color: yellow;
+  float: right;
+  color: green;
   font-family: "Courier New", Courier, monospace;
   font-size: 14px;
+  font-weight: bold;
 }
