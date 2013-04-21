@@ -38,6 +38,18 @@ function RGB(r, g, b) {
   return (r | (g << 8) | (b << 16) | (0xFF << 24)) >>> 0;
 }
 
+function R(pixel) {
+  return pixel & 0xff;
+}
+
+function G(pixel) {
+  return (pixel >> 8) & 0xff;
+}
+
+function B(pixel) {
+  return (pixel >> 16) & 0xff;
+}
+
 function Left4kDead() {
   this.startFPS();
 
@@ -243,7 +255,7 @@ function Left4kDead() {
           inloop: for (/*int*/ var x = 1; x < 1024 - 1; x++) {
             for (/*int*/ var xx = x - 1; xx <= x + 1; xx++)
               for (/*int*/ var yy = y - 1; yy <= y + 1; yy++)
-                if (map[xx + yy * 1024] < 0xff0000) /* !!! */
+                if (R(map[xx + yy * 1024]) < 0xff)
                   continue inloop;
 
             map[x + y * 1024] = RGB(0xff, 0xff, 0xff);
@@ -373,7 +385,8 @@ function Left4kDead() {
                   yPos = 1;
                 }
 
-                if (map[xPos + yPos * 1024] < 0xfffffe /* !!! */
+                if (map[xPos + yPos * 1024] != RGB(0xFF, 0xFF, 0xFF)
+                    && map[xPos + yPos * 1024] != RGB(0xFF, 0xFF, 0xFE)
                     && (m <= 128 || rushTime > 0 || (m > 255 && tick == 1))) {
                   monsterData[m * 16 + 0] = xPos;
                   monsterData[m * 16 + 1] = yPos;
@@ -468,7 +481,7 @@ function Left4kDead() {
                     /*int*/ var xd = Math.floor(xPos + xdd * j / pow);
                     /*int*/ var yd = Math.floor(yPos + ydd * j / pow);
                     /*int*/ var pp = ((xd) + (yd) * 1024) & (1024 * 1024 - 1);
-                    if (map[pp] >= 0xff0000) /* !!! */
+                    if (R(map[pp]) == 0xFF)
                       break bloodLoop;
                     if (randomNextInt(2) != 0) {
                       map[pp] = RGB(col, 0, 0);
@@ -555,7 +568,8 @@ function Left4kDead() {
                     map[xPos + yPos * 1024] = monsterData[m * 16 + 15];
                     for (/*int*/ var xx = xPos + xa - 3; xx <= xPos + xa + 3; xx++)
                       for (/*int*/ var yy = yPos + ya - 3; yy <= yPos + ya + 3; yy++)
-                        if (map[xx + yy * 1024] >= 0xfffffe) { /* !!! */
+                        if (map[xx + yy * 1024] == RGB(0xFF, 0xFF, 0xFE)
+                          || map[xx + yy * 1024] == RGB(0xFF, 0xFF, 0xFF)) {
                           map[xPos + yPos * 1024] = RGB(0xff, 0xff, 0xfe);
                           monsterData[m * 16 + 8] = randomNextInt(25);
                           continue dirLoop;
@@ -668,11 +682,11 @@ function Left4kDead() {
             lightmap[x + y * 240] = 0;
 
             /* Reversed components from RGB to BGR */
-            /*int*/ var r = (c & 0xff) * light / 255 + noise;
+            /*int*/ var r = (c & 0xff) * l / 255 + noise;
             if (r > 255) r = 255;
-            /*int*/ var g = ((c >> 8) & 0xff) * light / 255 + noise;
+            /*int*/ var g = ((c >> 8) & 0xff) * l / 255 + noise;
             if (g > 255) g = 255;
-            /*int*/ var b = ((c >> 16) & 0xff) * light / 255 + noise;
+            /*int*/ var b = ((c >> 16) & 0xff) * l / 255 + noise;
             if (b > 255) b = 255;
 
             r = r * (255 - hurtTime) / 255 + hurtTime;
