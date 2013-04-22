@@ -393,13 +393,13 @@ function Left4kDead() {
           lightmap[xx + yy * 240] = br;
         }
       }
+      var pixp = 0;
       for (/*int*/ var y = 0; y < 240; y++) {
         /*int*/ var xm = xCam - 120;
         /*int*/ var ym = y + yCam - 120;
-        var yOff = y * 240;
         var yMapOff = ym * 1024;
         for (/*int*/ var x = 0; x < 240; x++) {
-          pixels[x + yOff] = map[(xm + x + yMapOff) & (1024 * 1024 - 1)];
+          pixels[pixp++] = map[(xm + yMapOff++) & (1024 * 1024 - 1)];
         }
       }
 
@@ -723,16 +723,16 @@ function Left4kDead() {
     bonusTime = bonusTime * 8 / 9;
     hurtTime >>= 1;
 
+    var pixp = 0;
     for (/*int*/ var y = 0; y < 240; y++) {
-      var yOff = y * 240;
       for (/*int*/ var x = 0; x < 240; x++) {
         /*int*/ var noise = (randomNextInt(16) * randomNextInt(16)) >> 4;
         if (!gameStarted)
           noise *= 4;
 
-        /*int*/ var c = pixels[x + y * 240];
-        /*int*/ var l = lightmap[x + y * 240];
-        lightmap[x + yOff] = 0;
+        /*int*/ var c = pixels[pixp];
+        /*int*/ var l = lightmap[pixp];
+        lightmap[pixp] = 0;
 
         /* Reversed components from RGB to BGR */
         /*int*/ var r = (((c & 0xff) * l) >> 8) + noise;
@@ -744,8 +744,9 @@ function Left4kDead() {
 
         r = ((r * (255 - hurtTime)) >> 8) + hurtTime;
         g = ((g * (255 - bonusTime)) >> 8) + bonusTime;
-        pixels[x + yOff] = RGB(r, g, b);
+        pixels[pixp++] = RGB(r, g, b);
       }
+      var yOff = y * 240;
       if (y % 2 == 0 && (y >= damage && y < 220)) {
         for (/*int*/ var x = 232; x < 238; x++) {
           pixels[yOff + x] = RGB(0x80, 0x00, 0x00);
