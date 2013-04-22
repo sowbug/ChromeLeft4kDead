@@ -416,10 +416,11 @@ function Left4kDead() {
       {
         /*int*/ var closestHit = 0;
 
-        nextMonster: for (/*int*/ var m = 0; m < 256 + 16; m++) {
-          /*int*/ var xPos = monsterData[m * 16 + 0];
-          /*int*/ var yPos = monsterData[m * 16 + 1];
-          if (monsterData[m * 16 + 11] == 0) {
+        nextMonster: for (/*int*/ m = 0; m < 256 + 16; ++m) {
+          /*int*/ var mOff = m * 16;
+          /*int*/ var xPos = monsterData[mOff + 0];
+          /*int*/ var yPos = monsterData[mOff + 1];
+          if (monsterData[mOff + 11] == 0) {
             xPos = (randomNextInt(62) + 1) * 16 + 8;
             yPos = (randomNextInt(62) + 1) * 16 + 8;
 
@@ -434,14 +435,14 @@ function Left4kDead() {
             if (map[xPos + yPos * 1024] != RGB(0xFF, 0xFF, 0xFF)
                 && map[xPos + yPos * 1024] != RGB(0xFF, 0xFF, 0xFE)
                 && (m <= 128 || rushTime > 0 || (m > 255 && tick == 1))) {
-              monsterData[m * 16 + 0] = xPos;
-              monsterData[m * 16 + 1] = yPos;
-              monsterData[m * 16 + 15] = map[xPos + yPos * 1024];
+              monsterData[mOff + 0] = xPos;
+              monsterData[mOff + 1] = yPos;
+              monsterData[mOff + 15] = map[xPos + yPos * 1024];
               map[xPos + yPos * 1024] = RGB(0xff, 0xff, 0xfe);
-              monsterData[m * 16 + 9] = (rushTime > 0 ||
+              monsterData[mOff + 9] = (rushTime > 0 ||
                 randomNextInt(3) == 0) ? 127 : 0;
-              monsterData[m * 16 + 11] = 1;
-              monsterData[m * 16 + 2] = m & 15;
+              monsterData[mOff + 11] = 1;
+              monsterData[mOff + 2] = m & 15;
             } else {
               continue;
             }
@@ -451,8 +452,8 @@ function Left4kDead() {
 
             if (m >= 255) {
               if (xd * xd + yd * yd < 8 * 8) {
-                map[xPos + yPos * 1024] = monsterData[m * 16 + 15];
-                monsterData[m * 16 + 11] = 0;
+                map[xPos + yPos * 1024] = monsterData[mOff + 15];
+                monsterData[mOff + 11] = 0;
                 bonusTime = 120;
                 if ((m & 1) == 0) {
                   damage = 20;
@@ -462,21 +463,21 @@ function Left4kDead() {
                 continue;
               }
             } else if (xd * xd + yd * yd > 340 * 340) {
-              map[xPos + yPos * 1024] = monsterData[m * 16 + 15];
-              monsterData[m * 16 + 11] = 0;
+              map[xPos + yPos * 1024] = monsterData[mOff + 15];
+              monsterData[mOff + 11] = 0;
               continue;
             }
           }
 
           /*int*/ var xm = xPos - xCam + 120;
-          /*int*/ var ym = monsterData[m * 16 + 1] - yCam + 120;
+          /*int*/ var ym = monsterData[mOff + 1] - yCam + 120;
 
-          /*int*/ var d = monsterData[m * 16 + 2];
+          /*int*/ var d = monsterData[mOff + 2];
           if (m == 0) {
             d = ((Math.floor(left4kDead.playerDir / (Math.PI * 2) * 16 + 4.5 + 16)) & 15);
           }
 
-          d += ((monsterData[m * 16 + 3] >> 2) & 3) * 16;
+          d += ((monsterData[mOff + 3] >> 2) & 3) * 16;
 
           /*int*/ var p = (0 * 16 + d) * 144;
           if (m > 0) {
@@ -500,20 +501,20 @@ function Left4kDead() {
 
           /*boolean*/ var moved = false;
 
-          if (monsterData[m * 16 + 10] > 0) {
-            monsterData[m * 16 + 11] += randomNextInt(3) + 1;
-            monsterData[m * 16 + 10] = 0;
+          if (monsterData[mOff + 10] > 0) {
+            monsterData[mOff + 11] += randomNextInt(3) + 1;
+            monsterData[mOff + 10] = 0;
 
             /*double*/ var rot = 0.25;
             /*int*/ var amount = 8;
             /*double*/ var poww = 32;
 
-            if (monsterData[m * 16 + 11] >= 2 + level) {
+            if (monsterData[mOff + 11] >= 2 + level) {
               rot = Math.PI * 2;
               amount = 60;
               poww = 16;
               map[(xPos) + (yPos) * 1024] = RGB(0xa0, 0x00, 0x00);
-              monsterData[m * 16 + 11] = 0;
+              monsterData[mOff + 11] = 0;
               score += level;
             }
             for (/*int*/ var i = 0; i < amount; i++) {
@@ -554,7 +555,7 @@ function Left4kDead() {
             }
             if (rx > -32 && rx < 220 && ry > -32 && ry < 32
                 && randomNextInt(10) == 0) {
-              monsterData[m * 16 + 9]++;
+              monsterData[mOff + 9]++;
             }
             if (rx > 0 && rx < closestHitDist && ry > -8 && ry < 8) {
               closestHitDist = Math.floor(rx);
@@ -564,8 +565,8 @@ function Left4kDead() {
             dirLoop: for (/*int*/ var i = 0; i < 2; i++) {
               /*int*/ var xa = 0;
               /*int*/ var ya = 0;
-              xPos = monsterData[m * 16 + 0];
-              yPos = monsterData[m * 16 + 1];
+              xPos = monsterData[mOff + 0];
+              yPos = monsterData[mOff + 1];
 
               if (m == 0) {
                 if (Key.isDown(Key.LEFT))
@@ -577,14 +578,14 @@ function Left4kDead() {
                 if (Key.isDown(Key.DOWN))
                   ya++;
               } else {
-                if (monsterData[m * 16 + 9] < 8)
+                if (monsterData[mOff + 9] < 8)
                   continue nextMonster;
 
-                if (monsterData[m * 16 + 8] != 12) {
-                  xPlayerDist = (monsterData[m * 16 + 8]) % 5 - 2;
-                  yPlayerDist = (monsterData[m * 16 + 8]) / 5 - 2;
+                if (monsterData[mOff + 8] != 12) {
+                  xPlayerDist = (monsterData[mOff + 8]) % 5 - 2;
+                  yPlayerDist = (monsterData[mOff + 8]) / 5 - 2;
                   if (randomNextInt(10) == 0) {
-                    monsterData[m * 16 + 8] = 12;
+                    monsterData[mOff + 8] = 12;
                   }
                 }
 
@@ -605,7 +606,7 @@ function Left4kDead() {
 
                 moved = true;
                 /*double*/ dir = Math.atan2(yPlayerDist, xPlayerDist);
-                monsterData[m * 16 + 2] = ((Math.floor(dir / (Math.PI * 2)
+                monsterData[mOff + 2] = ((Math.floor(dir / (Math.PI * 2)
                     * 16 + 4.5 + 16)) & 15);
               }
 
@@ -613,26 +614,26 @@ function Left4kDead() {
               xa *= 1 - i;
 
               if (xa != 0 || ya != 0) {
-                map[xPos + yPos * 1024] = monsterData[m * 16 + 15];
+                map[xPos + yPos * 1024] = monsterData[mOff + 15];
                 for (/*int*/ var xx = xPos + xa - 3; xx <= xPos + xa + 3; xx++)
                   for (/*int*/ var yy = yPos + ya - 3; yy <= yPos + ya + 3; yy++)
                     if (map[xx + yy * 1024] == RGB(0xFF, 0xFF, 0xFE)
                       || map[xx + yy * 1024] == RGB(0xFF, 0xFF, 0xFF)) {
                       map[xPos + yPos * 1024] = RGB(0xff, 0xff, 0xfe);
-                      monsterData[m * 16 + 8] = randomNextInt(25);
+                      monsterData[mOff + 8] = randomNextInt(25);
                       continue dirLoop;
                     }
 
                 moved = true;
-                monsterData[m * 16 + 0] += xa;
-                monsterData[m * 16 + 1] += ya;
-                monsterData[m * 16 + 15] = map[(xPos + xa) + (yPos + ya)
+                monsterData[mOff + 0] += xa;
+                monsterData[mOff + 1] += ya;
+                monsterData[mOff + 15] = map[(xPos + xa) + (yPos + ya)
                     * 1024];
                 map[(xPos + xa) + (yPos + ya) * 1024] = RGB(0xff, 0xff, 0xfe);
               }
             }
             if (moved) {
-              monsterData[m * 16 + 3]++;
+              monsterData[mOff + 3]++;
             }
           }
         }
