@@ -88,8 +88,8 @@ function Left4kDead() {
     Key.onMouseDown(event); }, false);
   canvas.addEventListener('mousemove', function(e) {
     // Divide by two because we have pixel-doubled the canvas.
-    var y = e.pageY / 2 - 120;
-    var x = e.pageX / 2 - 120;
+    var y = (e.pageY >> 1) - 120;
+    var x = (e.pageX >> 1) - 120;
     left4kDead.playerDir = Math.atan2(y, x);
   }, false);
 
@@ -100,7 +100,7 @@ function Left4kDead() {
   var lightmapBuf = new ArrayBuffer(240 * 240);
   var lightmap = new Uint8ClampedArray(lightmapBuf);
 
-  Math.seedrandom();
+  /* Math.seedrandom();  TODO: too slow! */
   buf = new ArrayBuffer(18 * 4 * 16 * 12 * 12 * 4);
   var sprites = new Uint32Array(buf);
   var pix = 0;
@@ -195,7 +195,6 @@ function Left4kDead() {
   function loop() {
 
     if (needsRestart) {
-      console.log("restart");
       needsRestart = false;
       gameStarted = false;
       level = 0;
@@ -208,14 +207,13 @@ function Left4kDead() {
     }
 
     if (needsWinLevel) {
-      console.log("winLevel");
       needsWinLevel = false;
 
       tick = 0;
       level++;
       var buf = new ArrayBuffer(1024 * 1024 * 4);
       map = new Uint32Array(buf);
-      Math.seedrandom(14329 + level);
+      /* Math.seedrandom(14329 + level); TODO: too slow! */
 
       var buf = new ArrayBuffer(320 * 16 * 4);
       monsterData = new Uint32Array(buf);
@@ -246,8 +244,8 @@ function Left4kDead() {
           ym *= 16;
 
           if (i == 68) {
-            monsterData[0] = Math.floor(xm + w / 2);
-            monsterData[1] = Math.floor(ym + h / 2);
+            monsterData[0] = xm + w >> 1;
+            monsterData[1] = ym + h >> 1;
             monsterData[15] = RGB(0x80, 0x80, 0x80);
             monsterData[11] = 1;
           }
@@ -272,7 +270,7 @@ function Left4kDead() {
                 if (((x + y) & 3) == 0) {
                   br += 16;
                 }
-                map[x + y * 1024] = RGB(br * 3 / 3, br * 4 / 4, br * 4 / 4);
+                map[x + y * 1024] = RGB(br * 3 / 3, (br * 4) >> 2, (br * 4) >> 2);
               }
               if (i == 69) {
                 map[x + y * 1024] &= RGB(0xff, 0x00, 0x00);
@@ -285,8 +283,8 @@ function Left4kDead() {
             /*int*/ var ww = 5;
             /*int*/ var hh = 5;
 
-            xGap = xGap / 16 * 16 + 5;
-            yGap = yGap / 16 * 16 + 5;
+            xGap = (xGap >> 4) * 16 + 5;
+            yGap = (yGap >> 4) * 16 + 5;
             if (randomNextInt(2) == 0) {
               xGap = xm + (w - 5) * randomNextInt(2);
               hh = 11;
@@ -297,7 +295,7 @@ function Left4kDead() {
             for (/*int*/ var y = yGap; y < yGap + hh; y++)
               for (/*int*/ var x = xGap; x < xGap + ww; x++) {
                 /*int*/ var br = randomNextInt(32) + 112 - 64;
-                map[x + y * 1024] = RGB(br * 3 / 3, br * 4 / 4, br * 4 / 4);
+                map[x + y * 1024] = RGB(br * 3 / 3, (br * 4) >> 2, (br * 4) >> 2);
               }
           }
         }
@@ -322,10 +320,10 @@ function Left4kDead() {
       for (/*int*/ var i = 0; i < 512; i++) {
         brightness[i] = Math.floor(255.0 * offs / (i + offs));
         if (i < 4)
-          brightness[i] = brightness[i] * i / 4;
+          brightness[i] = (brightness[i] * i) >> 2;
       }
 
-      Math.seedrandom();
+      /* Math.seedrandom();  TODO: too slow! */
     }
 
     if (gameStarted) {
@@ -369,7 +367,7 @@ function Left4kDead() {
           dist = 32;
         }
         if (tick < 60)
-          brr = brr * tick / 60;
+          brr = Math.floor(brr * tick / 60);
 
         /*int*/ var j = 0;
         for (; j < dist; j++) {
@@ -384,12 +382,12 @@ function Left4kDead() {
           /*int*/ var xd = Math.floor((xx - 120) * 256 / 120);
           /*int*/ var yd = Math.floor((yy - 120) * 256 / 120);
 
-          /*int*/ var ddd = Math.floor((xd * xd + yd * yd) / 256);
+          /*int*/ var ddd = (xd * xd + yd * yd) >> 8;
           /*int*/ var br = Math.floor(brightness[ddd] * brr / 255);
 
           if (ddd < 16) {
-            /*int*/ var tmp = Math.floor(128 * (16 - ddd) / 16);
-            br = br + tmp * (255 - br) / 255;
+            /*int*/ var tmp = Math.floor((128 * (16 - ddd)) >> 4);
+            br = br + Math.floor(tmp * (255 - br) / 255);
           }
 
           lightmap[xx + yy * 240] = br;
@@ -406,11 +404,11 @@ function Left4kDead() {
 
       /*int*/ var closestHitDist = 0;
       for (/*int*/ var j = 0; j < 250; j++) {
-        /*int*/ var xm = xCam + Math.floor(cos * j / 2);
-        /*int*/ var ym = yCam - Math.floor(sin * j / 2);
+        /*int*/ var xm = xCam + Math.floor((cos * j) >> 1);
+        /*int*/ var ym = yCam - Math.floor((sin * j) >> 1);
         if (map[(xm + ym * 1024) & (1024 * 1024 - 1)] == RGB(0xff, 0xff, 0xff))
           break;
-        closestHitDist = j / 2;
+        closestHitDist = j >> 1;
       }
 
       /*boolean*/ var shoot = shootDelay-- < 0 && Key.isDown(Key.MOUSE);
@@ -478,7 +476,7 @@ function Left4kDead() {
             d = ((Math.floor(left4kDead.playerDir / (Math.PI * 2) * 16 + 4.5 + 16)) & 15);
           }
 
-          d += ((monsterData[m * 16 + 3] / 4) & 3) * 16;
+          d += ((monsterData[m * 16 + 3] >> 2) & 3) * 16;
 
           /*int*/ var p = (0 * 16 + d) * 144;
           if (m > 0) {
@@ -489,14 +487,16 @@ function Left4kDead() {
             p = (17 * 4 * 16 + ((m & 1) * 16 + (tick & 15))) * 144;
           }
 
-          for (/*int*/ var y = ym - 6; y < ym + 6; y++)
+          for (/*int*/ var y = ym - 6; y < ym + 6; y++) {
+            var pp = y * 240;
             for (/*int*/ var x = xm - 6; x < xm + 6; x++) {
               /*int*/ var c = sprites[p++];
               var c_rgb = c & 0xffffff;
               if (c_rgb > 0 && x >= 0 && y >= 0 && x < 240 && y < 240) {
-                pixels[x + y * 240] = c;
+                pixels[x + pp] = c;
               }
             }
+          }
 
           /*boolean*/ var moved = false;
 
@@ -590,13 +590,13 @@ function Left4kDead() {
 
                 /*double*/ xxd = Math.sqrt(xPlayerDist * xPlayerDist);
                 /*double*/ yyd = Math.sqrt(yPlayerDist * yPlayerDist);
-                if (randomNextInt(1024) / 1024.0 < yyd / xxd) {
+                if (randomNextInt(1024) >> 10 < yyd / xxd) {
                   if (yPlayerDist < 0)
                     ya--;
                   if (yPlayerDist > 0)
                     ya++;
                 }
-                if (randomNextInt(1024) / 1024.0 < xxd / yyd) {
+                if (randomNextInt(1024) >> 10 < xxd / yyd) {
                   if (xPlayerDist < 0)
                     xa--;
                   if (xPlayerDist > 0)
@@ -719,11 +719,11 @@ function Left4kDead() {
     }  // if gameStarted
 
     bonusTime = bonusTime * 8 / 9;
-    hurtTime /= 2;
+    hurtTime >>= 1;
 
     for (/*int*/ var y = 0; y < 240; y++) {
       for (/*int*/ var x = 0; x < 240; x++) {
-        /*int*/ var noise = Math.floor(randomNextInt(16) * randomNextInt(16) / 16);
+        /*int*/ var noise = (randomNextInt(16) * randomNextInt(16)) >> 4;
         if (!gameStarted)
           noise *= 4;
 
