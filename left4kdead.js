@@ -396,9 +396,10 @@ function Left4kDead() {
       for (/*int*/ var y = 0; y < 240; y++) {
         /*int*/ var xm = xCam - 120;
         /*int*/ var ym = y + yCam - 120;
+        var yOff = y * 240;
+        var yMapOff = ym * 1024;
         for (/*int*/ var x = 0; x < 240; x++) {
-          pixels[x + y * 240] = map[(xm + x + ym * 1024)
-              & (1024 * 1024 - 1)];
+          pixels[x + yOff] = map[(xm + x + yMapOff) & (1024 * 1024 - 1)];
         }
       }
 
@@ -723,6 +724,7 @@ function Left4kDead() {
     hurtTime >>= 1;
 
     for (/*int*/ var y = 0; y < 240; y++) {
+      var yOff = y * 240;
       for (/*int*/ var x = 0; x < 240; x++) {
         /*int*/ var noise = (randomNextInt(16) * randomNextInt(16)) >> 4;
         if (!gameStarted)
@@ -730,33 +732,33 @@ function Left4kDead() {
 
         /*int*/ var c = pixels[x + y * 240];
         /*int*/ var l = lightmap[x + y * 240];
-        lightmap[x + y * 240] = 0;
+        lightmap[x + yOff] = 0;
 
         /* Reversed components from RGB to BGR */
-        /*int*/ var r = (c & 0xff) * l / 255 + noise;
+        /*int*/ var r = (((c & 0xff) * l) >> 8) + noise;
         if (r > 255) r = 255;
-        /*int*/ var g = ((c >> 8) & 0xff) * l / 255 + noise;
+        /*int*/ var g = ((((c >> 8) & 0xff) * l) >> 8) + noise;
         if (g > 255) g = 255;
-        /*int*/ var b = ((c >> 16) & 0xff) * l / 255 + noise;
+        /*int*/ var b = ((((c >> 16) & 0xff) * l) >> 8) + noise;
         if (b > 255) b = 255;
 
-        r = r * (255 - hurtTime) / 255 + hurtTime;
-        g = g * (255 - bonusTime) / 255 + bonusTime;
-        pixels[x + y * 240] = RGB(r, g, b);
+        r = ((r * (255 - hurtTime)) >> 8) + hurtTime;
+        g = ((g * (255 - bonusTime)) >> 8) + bonusTime;
+        pixels[x + yOff] = RGB(r, g, b);
       }
       if (y % 2 == 0 && (y >= damage && y < 220)) {
         for (/*int*/ var x = 232; x < 238; x++) {
-          pixels[y * 240 + x] = RGB(0x80, 0x00, 0x00);
+          pixels[yOff + x] = RGB(0x80, 0x00, 0x00);
         }
       }
       if (y % 2 == 0 && (y >= ammo && y < 220)) {
         for (/*int*/ var x = 224; x < 230; x++) {
-          pixels[y * 240 + x] = RGB(0x80, 0x80, 0x00);
+          pixels[yOff + x] = RGB(0x80, 0x80, 0x00);
         }
       }
       if (y % 10 < 9 && (y >= clips && y < 220)) {
         for (/*int*/ var x = 221; x < 222; x++) {
-          pixels[y * 240 + 221] = RGB(0xff, 0xff, 0x00);
+          pixels[yOff + 221] = RGB(0xff, 0xff, 0x00);
         }
       }
     }
